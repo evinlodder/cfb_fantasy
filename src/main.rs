@@ -1,46 +1,22 @@
 use curl::easy::{Easy, List};
+use curl::Error;
 use dotenv::dotenv;
+use std::env;
 
 mod cfb;
-use cfb::Conference;
+use cfb::{get_data, Conference, Endpoint, Team};
 
-fn main() {
+fn main() -> Result<(), Error> {
+    env::set_var("RUST_BACKTRACE", "1");
     //set up env vars
     dotenv().ok();
     let api_token = std::env::var("CFB_API_TOKEN").expect("CFB_API_TOKEN must be set!");
 
-    //testing out lib
-    let mut curl_data = Vec::new();
+    let conference_data = get_data(Endpoint::Conferences, &api_token)?;
 
-    //curl client
-    let mut easy = Easy::new();
-    easy.url("https://api.collegefootballdata.com/conferences")
-        .unwrap();
-    //set headers
+    let conferences: Vec<Conference> = serde_json::from_slice(&conference_data).unwrap();
 
-    let mut list = List::new();
-
-    let auth = format!("Authorization: Bearer {api_token}");
-
-    list.append(&auth).unwrap();
-    list.append("accept: application/json").unwrap();
-    easy.http_headers(list).unwrap();
-
-    let mut transfer = easy.transfer();
-    //set request's callback
-    transfer
-        .write_function(|data| {
-            curl_data.extend_from_slice(data);
-            Ok(data.len())
-        })
-        .unwrap();
-
-    transfer.perform().unwrap();
-    drop(transfer);
-
-    let conferences: Vec<Conference> = serde_json::from_slice(&curl_data).unwrap();
-
-    for conference in &conferences {
-        println!("{}", conference.name);
-    }
+    let team_data = get_data(Endpoint::Teams("ACC".to_owned()), &api_token)?;
+    let acc_teams: Vec<Team> = serde_json::from_slice(&team_data).unwrap();
+    Ok(())
 }
