@@ -48,22 +48,60 @@ pub struct Team {
     pub location: TeamLocation,
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlayerStats {
+    pub playerId: u64,
+    pub player: String,
+    pub team: String,
+    pub conference: String,
+    pub category: String,
+    pub statType: String,
+    pub stat: u32,
+}
+
+pub enum StatCategory {
+    Passing,
+    Rushing,
+    Receiving,
+    Defensive,
+}
+
+pub enum SeasonType {
+    Regular,
+    Postseason,
+    Both,
+}
+
+pub struct SeasonStatsParameters {
+    pub team: Option<String>,
+    pub conference: Option<String>,
+    pub start_week: Option<u8>,
+    pub end_week: Option<u8>,
+    pub season_type: Option<SeasonType>,
+    pub category: Option<StatCategory>,
+}
+
 pub enum Endpoint {
     Conferences,
     Teams(String),
+    SeasonStats(u16, Option<SeasonStatsParameters>),
 }
 
 impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match &*self {
-            Endpoint::Conferences => format!("{:?}", self).to_lowercase(),
-            Endpoint::Teams(conf) => format!(
-                "{}?conference={}",
-                format!("{:?}", self).split("(").next().unwrap(),
-                conf
-            )
-            .to_lowercase(),
+        let s: String = match &*self {
+            Endpoint::Conferences => String::from("conferences"),
+            Endpoint::Teams(conf) => format!("teams?conference={}", conf),
+            Endpoint::SeasonStats(year, opts) => {
+                let mut s = format!("stats/player/season?year={year}");
+                if opts.is_none() {
+                    s
+                }
+                if let Some(team) = opts.team {
+                    s += format!("&team={}", team.replace(" ", "%20"));
+                }
+                if let Some(conference) = opts.conference {}
+            }
         };
         write!(f, "{}", &s)
     }
@@ -90,3 +128,5 @@ pub fn get_data(endpoint: Endpoint, api_key: &str) -> Result<Vec<u8>, Error> {
     drop(transfer);
     Ok(curl_data)
 }
+
+pub fn get_player_stats(name: &str) -> Result<Vec<PlayerStats>, Error> {}
