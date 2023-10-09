@@ -12,39 +12,39 @@ pub struct Conference {
     pub classification: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TeamLocation {
-    pub venue_id: u32,
-    pub name: String,
-    pub city: String,
-    pub state: String,
-    pub zip: String,
-    pub country_code: String,
-    pub timezone: String,
-    pub latitude: f32,
-    pub longitude: f32,
-    pub elevation: String,
-    pub capacity: u32,
-    pub year_constructed: u16,
-    pub grass: bool,
-    pub dome: bool,
+    pub venue_id: Option<u32>,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub state: Option<String>,
+    pub zip: Option<String>,
+    pub country_code: Option<String>,
+    pub timezone: Option<String>,
+    pub latitude: Option<f32>,
+    pub longitude: Option<f32>,
+    pub elevation: Option<String>,
+    pub capacity: Option<u32>,
+    pub year_constructed: Option<u16>,
+    pub grass: Option<bool>,
+    pub dome: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Team {
     pub id: u32,
     pub school: String,
-    pub mascot: String,
-    pub abbreviation: String,
+    pub mascot: Option<String>,
+    pub abbreviation: Option<String>,
     pub alt_name1: Option<String>,
     pub alt_name2: Option<String>,
     pub alt_name3: Option<String>,
-    pub conference: String,
-    pub classification: String,
-    pub color: String,
-    pub alt_color: String,
-    pub logos: Vec<String>,
-    pub twitter: String,
+    pub conference: Option<String>,
+    pub classification: Option<String>,
+    pub color: Option<String>,
+    pub alt_color: Option<String>,
+    pub logos: Option<Vec<String>>,
+    pub twitter: Option<String>,
     pub location: TeamLocation,
 }
 
@@ -58,11 +58,12 @@ impl fmt::Display for Endpoint {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match &*self {
             Endpoint::Conferences => format!("{:?}", self).to_lowercase(),
-            Endpoint::Teams(conf) => format!("{:?}?conference={}", self, conf)
-                .split("(")
-                .next()
-                .unwrap()
-                .to_lowercase(),
+            Endpoint::Teams(conf) => format!(
+                "{}?conference={}",
+                format!("{:?}", self).split("(").next().unwrap(),
+                conf
+            )
+            .to_lowercase(),
         };
         write!(f, "{}", &s)
     }
