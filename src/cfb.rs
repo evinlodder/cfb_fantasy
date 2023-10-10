@@ -48,6 +48,7 @@ pub struct Team {
     pub location: TeamLocation,
 }
 
+#[allow(non_snake_case)] //only because that's how the public API has it
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PlayerStats {
     pub playerId: u64,
@@ -81,13 +82,13 @@ pub struct SeasonStatsParameters {
     pub category: Option<StatCategory>,
 }
 
-pub enum Endpoint {
+pub enum Endpoint<'a> {
     Conferences,
     Teams(String),
-    SeasonStats(u16, Option<SeasonStatsParameters>),
+    SeasonStats(u16, Option<&'a SeasonStatsParameters>),
 }
 
-impl fmt::Display for Endpoint {
+impl<'a> fmt::Display for Endpoint<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s: String = match &*self {
             Endpoint::Conferences => String::from("conferences"),
@@ -96,11 +97,41 @@ impl fmt::Display for Endpoint {
                 let mut s = format!("stats/player/season?year={year}");
                 if opts.is_none() {
                     s
+                } else {
+                    let opts = opts.unwrap();
+
+                    if let Some(team) = &opts.team {
+                        s += &format!("&team={}", team.replace(" ", "%20"));
+                    }
+                    if let Some(conference) = &opts.conference {
+                        s += &format!("&conference={}", conference.replace(" ", "%20"));
+                    }
+                    if let Some(start_week) = &opts.start_week {
+                        s += &format!("&startWeek={start_week}");
+                    }
+                    if let Some(end_week) = &opts.end_week {
+                        s += &format!("&endWeek={end_week}");
+                    }
+                    if let Some(season_type) = &opts.season_type {
+                        let season_type = match season_type {
+                            SeasonType::Regular => "regular",
+                            SeasonType::Postseason => "postseason",
+                            SeasonType::Both => "both",
+                        };
+                        s += &format!("&seasonType={season_type}");
+                    }
+                    if let Some(category) = &opts.category {
+                        let category = match category {
+                            StatCategory::Passing => "passing",
+                            StatCategory::Receiving => "receiving",
+                            StatCategory::Rushing => "rushing",
+                            StatCategory::Defensive => "defensive",
+                        };
+                        s += &format!("&category={category}");
+                    }
+
+                    s
                 }
-                if let Some(team) = opts.team {
-                    s += format!("&team={}", team.replace(" ", "%20"));
-                }
-                if let Some(conference) = opts.conference {}
             }
         };
         write!(f, "{}", &s)
@@ -129,4 +160,39 @@ pub fn get_data(endpoint: Endpoint, api_key: &str) -> Result<Vec<u8>, Error> {
     Ok(curl_data)
 }
 
-pub fn get_player_stats(name: &str) -> Result<Vec<PlayerStats>, Error> {}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_season_type_stattype_season_stats() {
+        let parameters = SeasonStatsParameters {
+            team: None,
+            conference: None,
+            start_week: None,
+            end_week: None,
+            season_type: Some(SeasonType::Regular),
+            category: Some(StatCategory::Passing),
+        };
+        let endpoint = Endpoint::SeasonStats(2003, Some(&parameters));
+        assert_eq!(
+            format!("{endpoint}"),
+            String::from("stats/player/season?year=2003&seasonType=regular&category=passing")
+        );
+    }
+    #[test]
+    fn test_empty_season_stats() {
+        let parameters = SeasonStatsParameters {
+            team: None,
+            conference: None,
+            start_week: None,
+            end_week: None,
+            season_type: None,
+            category: None,
+        };
+        let endpoint = Endpoint::SeasonStats(2003, Some(&parameters));
+        assert_eq!(
+            format!("{endpoint}"),
+            String::from("stats/player/season?year=2003")
+        );
+    }
+}
