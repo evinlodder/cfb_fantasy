@@ -1,13 +1,6 @@
-[package]
-name = "cfb_fantasy"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-cargo-watch = "8.4.1"
-curl = "0.4.44"
-dotenv = "0.15.0"
-serde = "1.0.188"
-serde_json = "1.0.107"
+members = [
+    "cfbd",
+    "cfb_fantasy_program",
+]
