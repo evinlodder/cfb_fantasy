@@ -16,6 +16,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: 'Create env file'
+      run: |
+        touch .env
+        echo CFB_API_TOKEN=${{ secrets.CFB_API_TOKEN }} >> .env
+        cat .env
     - name: Format
       run: cargo clippy --fix
     - name: Build
