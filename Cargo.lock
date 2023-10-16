@@ -16,6 +16,7 @@ name = "cfb_fantasy_program"
 version = "0.1.0"
 dependencies = [
  "cfbd",
+ "curl",
  "dotenv",
  "serde",
  "serde_json",
@@ -26,7 +27,9 @@ name = "cfbd"
 version = "0.1.0"
 dependencies = [
  "curl",
+ "dotenv",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

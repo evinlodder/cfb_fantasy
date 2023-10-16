@@ -2,7 +2,7 @@ use crate::response_types::*;
 use curl::easy::{Easy, List};
 use curl::Error;
 
-pub fn get_data(endpoint: Endpoint, api_key: &str) -> Result<Vec<u8>, Error> {
+pub fn get_endpoint_data(endpoint: Endpoint, api_key: &str) -> Result<Vec<u8>, Error> {
     //create return vector and curl client
     let mut curl_data = Vec::new();
     let mut easy = Easy::new();

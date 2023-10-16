@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 dotenv = "0.15.0"
-serde = "1.0.188"
+serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.107"
 cfbd = { path = "../cfbd" }
+curl = "0.4.44"

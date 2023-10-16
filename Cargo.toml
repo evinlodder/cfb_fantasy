@@ -1,5 +1,5 @@
 [workspace]
-
+resolver = "2"
 members = [
     "cfbd",
     "cfb_fantasy_program",
